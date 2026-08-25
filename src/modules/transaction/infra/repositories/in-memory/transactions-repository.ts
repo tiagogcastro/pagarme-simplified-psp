@@ -1,5 +1,5 @@
-import { Transaction } from '@root/modules/transaction/domain/entities/transaction/transaction';
-import { ITransactionRepository } from '@root/modules/transaction/domain/repositories/transaction-repository';
+import { Transaction } from '@/modules/transaction/domain/entities/transaction/transaction';
+import { ITransactionRepository } from '@/modules/transaction/domain/repositories/transaction-repository';
 
 export class InMemoryTransactionRepository implements ITransactionRepository {
   private transactions: Transaction[] = [];
@@ -11,14 +11,14 @@ export class InMemoryTransactionRepository implements ITransactionRepository {
   }
 
   async findMany(): Promise<Transaction[]> {
-    return this.transactions;
+    return [...this.transactions];
   }
 
-  async exists(card_number: number): Promise<Transaction> {
-    const found = this.transactions.find(where => where.card_number.value === card_number);
+  async exists(card_number: string): Promise<Transaction | null> {
+    const found = this.transactions.find(
+      transaction => transaction.card_number.value === card_number,
+    );
 
-    if (!found) return null;
-
-    return found;
+    return found ?? null;
   }
 }

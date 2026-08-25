@@ -1,6 +1,6 @@
-import { IPayableRepository } from '@root/modules/payable/domain/repositories/payable-repository';
-import { ListBalance } from '@root/modules/payable/application/usecases/ListBalance/list-balance';
-import { ListBalanceController } from '@root/modules/payable/application/usecases/ListBalance/list-balance.controller';
+import { IPayableRepository } from '@/modules/payable/domain/repositories/payable-repository';
+import { ListBalance } from '@/modules/payable/application/usecases/ListBalance/list-balance';
+import { ListBalanceController } from '@/modules/payable/application/usecases/ListBalance/list-balance.controller';
 
 export function listBalanceFactory(
   payableRepository: IPayableRepository,

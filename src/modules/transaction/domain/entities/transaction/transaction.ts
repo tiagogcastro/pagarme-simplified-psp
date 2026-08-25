@@ -1,7 +1,7 @@
-import { Either, right } from '@root/core/logic/Either';
+import { Either, right } from '@/core/logic/Either';
 
 import { CardNumber } from './card-number';
-import { Entity } from '@root/core/domain/Entity';
+import { Entity } from '@/core/domain/Entity';
 
 export type PaymentMethod = 'debit_card' | 'credit_card';
 
@@ -12,7 +12,7 @@ export interface ITransaction {
   card_number: CardNumber;
   card_holder_name: string;
   card_expiration_date: Date;
-  card_verification_code: number;
+  card_verification_code: string;
 }
 
 export class Transaction extends Entity<ITransaction> {

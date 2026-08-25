@@ -1,39 +1,33 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
+import { ZodError, ZodType } from 'zod';
 
 import { Controller } from '../Controller';
 import { HttpResponse } from '../HttpResponse';
 
-const adaptRequest = (request: Request) => {
+type RequestData = Record<string, unknown>;
+
+const collectRequestData = (request: Request): RequestData => {
   return {
     ...request.body,
     ...request.params,
     ...request.query,
-    // userId: request.userId,
   };
-}
+};
 
-const isSuccessful = (statusCode: number) => {
-  return statusCode >= 200 && statusCode <= 299;
-}
+export const adaptRoute = (controller: Controller, schema?: ZodType) => {
+  return async (request: Request, response: Response, next: NextFunction) => {
+    try {
+      const requestData = collectRequestData(request);
 
-const adaptResponse = (result: HttpResponse, response: Response) => {
-  const { statusCode } = result;
+      const data = schema ? await schema.parseAsync(requestData) : requestData;
 
-  if (isSuccessful(statusCode)) {
-    return response.status(statusCode).json(result);
-  }
+      const result: HttpResponse = await controller.handle(data);
 
-  return response.status(statusCode).json(result);
-}
+      return response.status(result.statusCode).json(result.body);
+    } catch (error) {
+      return next(error);
+    }
+  };
+};
 
-export const adaptRoute = (controller: Controller) => {
-  return async (request: Request, response: Response) => {
-    const requestData = adaptRequest(request);
-
-    const result = await controller.handle(requestData);
-
-    adaptResponse(result, response);
-  }
-}
-
-
+export { ZodError };

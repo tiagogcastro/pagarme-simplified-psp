@@ -1,6 +1,6 @@
-import { ITransactionRepository } from '@root/modules/transaction/domain/repositories/transaction-repository';
-import { ListManyTransaction } from '@root/modules/transaction/application/usecases/ListTransactions/list-many-transactions';
-import { ListTransactionsController } from '@root/modules/transaction/application/usecases/ListTransactions/list-many-transactions.controller';
+import { ITransactionRepository } from '@/modules/transaction/domain/repositories/transaction-repository';
+import { ListManyTransaction } from '@/modules/transaction/application/usecases/ListTransactions/list-many-transactions';
+import { ListTransactionsController } from '@/modules/transaction/application/usecases/ListTransactions/list-many-transactions.controller';
 
 export function listTransactionsFactory(
   transactionRepository: ITransactionRepository,

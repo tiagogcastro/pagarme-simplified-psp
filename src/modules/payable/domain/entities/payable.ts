@@ -1,11 +1,12 @@
-import { Either, right } from '@root/core/logic/Either';
+import { Either, right } from '@/core/logic/Either';
 
-import { Entity } from '@root/core/domain/Entity';
-import { Transaction } from '@root/modules/transaction/domain/entities/transaction/transaction';
+import { Entity } from '@/core/domain/Entity';
+import { Transaction } from '@/modules/transaction/domain/entities/transaction/transaction';
 
 export type PayableStatus = 'paid' | 'waiting_funds';
 
 export interface IPayable {
+  value: number;
   payment_date: Date;
   transaction_id: string;
 
@@ -18,6 +19,10 @@ export class Payable extends Entity<IPayable> {
 
   constructor(props: IPayable, id?: string) {
     super(props, id);
+  }
+
+  get value() {
+    return this.props.value;
   }
 
   get payment_date() {

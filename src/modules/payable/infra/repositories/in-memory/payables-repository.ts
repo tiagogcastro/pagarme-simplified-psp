@@ -1,9 +1,8 @@
-import { Payable, PayableStatus } from '@root/modules/payable/domain/entities/payable';
-
-import { IPayableRepository } from '@root/modules/payable/domain/repositories/payable-repository';
+import { Payable, PayableStatus } from '@/modules/payable/domain/entities/payable';
+import { IPayableRepository } from '@/modules/payable/domain/repositories/payable-repository';
 
 export class InMemoryPayablesRepository implements IPayableRepository {
-  payables: Payable[] = [];
+  private payables: Payable[] = [];
 
   async create(payable: Payable): Promise<Payable> {
     this.payables.push(payable);
@@ -11,15 +10,17 @@ export class InMemoryPayablesRepository implements IPayableRepository {
     return payable;
   }
 
-  async exists(payable_id: string): Promise<Payable> {
-    return this.payables.find(where => where.id === payable_id);
+  async exists(payable_id: string): Promise<Payable | null> {
+    const found = this.payables.find(payable => payable.id === payable_id);
+
+    return found ?? null;
   }
 
   async findMany(): Promise<Payable[]> {
-    return this.payables;
+    return [...this.payables];
   }
 
   async findManyByStatus(payable_status: PayableStatus): Promise<Payable[]> {
-    return this.payables.filter(where => where.props.status === payable_status);
+    return this.payables.filter(payable => payable.status === payable_status);
   }
 }

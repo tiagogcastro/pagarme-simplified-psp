@@ -1,19 +1,19 @@
-import { clientError, created, fail } from '@root/core/infra/HttpResponse';
+import { clientError, created } from '@/core/infra/HttpResponse';
 
-import { Controller } from '@root/core/infra/Controller';
-import { CreatePayable } from '@root/modules/payable/application/usecases/CreatePayable/create-payable';
+import { Controller } from '@/core/infra/Controller';
+import { CreatePayable } from '@/modules/payable/application/usecases/CreatePayable/create-payable';
+import { PayableMapper } from '@/modules/payable/domain/mappers/payable-mapper';
+import { PaymentMethod } from '@/modules/transaction/domain/entities/transaction/transaction';
+import { TransactionMapper } from '@/modules/transaction/domain/mappers/transaction-mapper';
 import { CreateTransaction } from './create-transaction';
-import { PayableMapper } from '@root/modules/payable/domain/mappers/payable-mapper';
-import { PaymentMethod } from '@root/modules/transaction/domain/entities/transaction/transaction';
-import { TransactionMapper } from '@root/modules/transaction/domain/mappers/transaction-mapper';
 
 type CreateTransactionRequest = {
   description?: string;
   payment_method: PaymentMethod;
-  card_number: number;
+  card_number: string;
   card_holder_name: string;
   card_expiration_date: Date;
-  card_verification_code: number;
+  card_verification_code: string;
   value: number;
 }
 
@@ -21,36 +21,30 @@ export class CreateTransactionController implements Controller {
   constructor(
     private readonly createTransaction: CreateTransaction,
     private readonly createPayable: CreatePayable,
-  ) { }
+  ) {}
 
   async handle(request: CreateTransactionRequest) {
-    try {
-      const transactionOrError = await this.createTransaction.execute(request);
+    const transactionOrError = await this.createTransaction.execute(request);
 
-      if (transactionOrError.isLeft()) {
-        const error = transactionOrError.value;
-
-        return clientError(error);
-      }
-
-      const payableOrError = await this.createPayable.execute({
-        transaction: transactionOrError.value,
-      });
-
-      if (payableOrError.isLeft()) {
-        return clientError(payableOrError.value);
-      }
-
-      const success = {
-        transaction: TransactionMapper.transformForResponse(transactionOrError.value),
-        payable: PayableMapper.transformForResponse(payableOrError.value, {
-          transaction: true,
-        }),
-      };
-
-      return created(success);
-    } catch (error) {
-      return fail(error);
+    if (transactionOrError.isLeft()) {
+      return clientError(transactionOrError.value);
     }
+
+    const transaction = transactionOrError.value;
+
+    const payables = await this.createPayable.execute({
+      transaction,
+    });
+
+    const success = {
+      transaction: TransactionMapper.transformForResponse(transaction),
+      payables: payables.map(payable =>
+        PayableMapper.transformForResponse(payable, {
+          omitTransaction: true,
+        })
+      ),
+    };
+
+    return created(success);
   }
 }

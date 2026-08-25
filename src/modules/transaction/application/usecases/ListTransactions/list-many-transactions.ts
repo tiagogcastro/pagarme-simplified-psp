@@ -1,20 +1,14 @@
-import { Either, right } from '@root/core/logic/Either';
-
-import { ITransactionRepository } from '@root/modules/transaction/domain/repositories/transaction-repository';
-import { Transaction } from '@root/modules/transaction/domain/entities/transaction/transaction';
-
-type ListManyTransactionResponse = Either<
-  null,
-  Transaction[]
->;
+import { ITransactionRepository } from '@/modules/transaction/domain/repositories/transaction-repository';
+import { Transaction } from '@/modules/transaction/domain/entities/transaction/transaction';
 
 export class ListManyTransaction {
   constructor(
     private transactionRepository: ITransactionRepository,
-  ) { }
-  async execute(): Promise<ListManyTransactionResponse> {
+  ) {}
+
+  async execute(): Promise<Transaction[]> {
     const transactions = await this.transactionRepository.findMany();
 
-    return right(transactions);
+    return transactions;
   }
 }

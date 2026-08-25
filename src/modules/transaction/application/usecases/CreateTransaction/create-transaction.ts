@@ -1,31 +1,29 @@
-import { Either, left, right } from '@root/core/logic/Either';
-import { PaymentMethod, Transaction } from '@root/modules/transaction/domain/entities/transaction/transaction';
+import { Either, left, right } from '@/core/logic/Either';
 
-import { CardNumber } from '@root/modules/transaction/domain/entities/transaction/card-number';
-import { ITransactionRepository } from '@root/modules/transaction/domain/repositories/transaction-repository';
-import { InvalidCardNumberError } from '@root/modules/transaction/domain/entities/transaction/errors/InvalidCardNumberError';
+import { CardNumber } from '@/modules/transaction/domain/entities/transaction/card-number';
+import { InvalidCardNumberError } from '@/modules/transaction/domain/entities/transaction/errors/InvalidCardNumberError';
+import { PaymentMethod, Transaction } from '@/modules/transaction/domain/entities/transaction/transaction';
+import { ITransactionRepository } from '@/modules/transaction/domain/repositories/transaction-repository';
 
 type CreateTransactionRequest = {
   description?: string;
   payment_method: PaymentMethod;
-  card_number: number;
+  card_number: string;
   card_holder_name: string;
   card_expiration_date: Date;
-  card_verification_code: number;
+  card_verification_code: string;
   value: number;
 }
 
-type CreateTransactionResponse = Either<
-  null | InvalidCardNumberError,
-  Transaction
->;
+type CreateTransactionResponse = Either<InvalidCardNumberError, Transaction>;
 
 export class CreateTransaction {
   constructor(
     private transactionRepository: ITransactionRepository,
-  ) { }
+  ) {}
+
   async execute(data: CreateTransactionRequest): Promise<CreateTransactionResponse> {
-    const { card_number, value, payment_method } = data;
+    const { card_number } = data;
 
     const cardNumberOrError = CardNumber.create(card_number);
 
@@ -33,27 +31,13 @@ export class CreateTransaction {
       return left(cardNumberOrError.value);
     }
 
-    const feeRateOptions = {
-      debit_card: 0.03,
-      credit_card: 0.05,
-    };
-
-    const feeRate = feeRateOptions[payment_method];
-
-    let fee = value * feeRate;
-    let payableAmount = value - fee;
-
-    const transactionOrError = Transaction.create({
+    const transaction = new Transaction({
       ...data,
-      value: payableAmount,
-      card_number: cardNumberOrError.value
+      card_number: cardNumberOrError.value,
     });
-
-    const transaction = transactionOrError.value;
 
     await this.transactionRepository.create(transaction);
 
     return right(transaction);
   }
 }
-

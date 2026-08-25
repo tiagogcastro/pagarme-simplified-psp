@@ -1,22 +1,21 @@
-import { PaymentMethod, Transaction } from '@root/modules/transaction/domain/entities/transaction/transaction';
+import { PaymentMethod, Transaction } from '@/modules/transaction/domain/entities/transaction/transaction';
 
-export type TransformForResponseTransactionMapper = {
+export type TransactionResponse = {
   id: string;
-  card_number: number;
+  card_number: string;
   card_expiration_date: Date;
   card_holder_name: string;
-  card_verification_code: number;
+  card_verification_code: string;
   payment_method: PaymentMethod;
   value: number;
-  description: string;
+  description?: string;
 }
 
 export class TransactionMapper {
-  static transformForResponse(
-    transaction: Transaction,
-    omit?: Partial<{ [K in keyof TransformForResponseTransactionMapper]: boolean }>
-  ): TransformForResponseTransactionMapper {
-    let response = {
+  static transformForResponse(transaction: Transaction): TransactionResponse {
+    const { description } = transaction;
+
+    return {
       id: transaction.id,
       card_number: transaction.card_number.value,
       card_expiration_date: transaction.card_expiration_date,
@@ -24,15 +23,7 @@ export class TransactionMapper {
       card_verification_code: transaction.card_verification_code,
       payment_method: transaction.payment_method,
       value: transaction.value,
-      description: transaction.description,
+      ...(description !== undefined && { description }),
     };
-
-    for (const key in omit) {
-      if (omit[key]) {
-        delete response[key];
-      }
-    }
-
-    return response;
   }
 }

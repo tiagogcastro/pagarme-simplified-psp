@@ -1,51 +1,76 @@
-import { Either, right } from '@root/core/logic/Either';
-import { IPayable, Payable } from '@root/modules/payable/domain/entities/payable';
-
-import { DateProvider } from '@root/shared/providers/date/models/date-provider';
-import { IPayableRepository } from '@root/modules/payable/domain/repositories/payable-repository';
-import { Transaction } from '@root/modules/transaction/domain/entities/transaction/transaction';
+import { IPayable, Payable, PayableStatus } from '@/modules/payable/domain/entities/payable';
+import { CREDIT_INSTALLMENTS, FEE_RATE_BY_PAYMENT_METHOD } from '@/modules/payable/domain/payable-fee';
+import { IPayableRepository } from '@/modules/payable/domain/repositories/payable-repository';
+import { Transaction } from '@/modules/transaction/domain/entities/transaction/transaction';
+import { DateProvider } from '@/shared/providers/date/models/date-provider';
 
 export type CreatePayableInput = {
   transaction: Transaction;
 }
 
-export type CreatePayableResponse = Either<
-  null,
-  Payable
->;
-
 export class CreatePayable {
   constructor(
     private payableRepository: IPayableRepository,
     private dateProvider: DateProvider,
-  ) { }
+  ) {}
 
-  async execute({ transaction }: CreatePayableInput): Promise<CreatePayableResponse> {
-    let payableInput: IPayable = {
-      payment_date: new Date(),
-      status: 'waiting_funds',
-      transaction,
-      transaction_id: transaction.id,
-    };
+  async execute({ transaction }: CreatePayableInput): Promise<Payable[]> {
+    const grossCents = Math.round(transaction.value * 100);
+    const feeRate = FEE_RATE_BY_PAYMENT_METHOD[transaction.payment_method];
+    const netCents = grossCents - Math.round(grossCents * feeRate);
 
     if (transaction.payment_method === 'debit_card') {
-      payableInput.status = 'paid';
-    }
-
-    if (transaction.payment_method === 'credit_card') {
-      const paymentDateThirtyDayAfter = this.dateProvider.add(payableInput.payment_date, {
-        days: 30
+      const payable = this.buildPayable({
+        transaction,
+        status: 'paid',
+        value: netCents / 100,
+        paymentDate: this.dateProvider.add(new Date(), { days: 1 }),
       });
 
-      payableInput.payment_date = paymentDateThirtyDayAfter;
+      await this.payableRepository.create(payable);
+
+      return [payable];
     }
 
-    const payableOrError = Payable.create(payableInput);
+    const installmentCents = Math.floor(netCents / CREDIT_INSTALLMENTS);
+    const lastInstallmentCents = netCents - installmentCents * (CREDIT_INSTALLMENTS - 1);
 
-    const payable = payableOrError.value;
+    const payables: Payable[] = [];
 
-    await this.payableRepository.create(payable);
+    for (let installment = 1; installment <= CREDIT_INSTALLMENTS; installment++) {
+      const isLast = installment === CREDIT_INSTALLMENTS;
 
-    return right(payable);
+      payables.push(
+        this.buildPayable({
+          transaction,
+          status: 'waiting_funds',
+          value: (isLast ? lastInstallmentCents : installmentCents) / 100,
+          paymentDate: this.dateProvider.add(new Date(), { days: 30 * installment }),
+        })
+      );
+    }
+
+    for (const payable of payables) {
+      await this.payableRepository.create(payable);
+    }
+
+    return payables;
+  }
+
+  private buildPayable(input: {
+    transaction: Transaction;
+    status: PayableStatus;
+    value: number;
+    paymentDate: Date;
+  }): Payable {
+    const payableInput: IPayable = {
+      value: input.value,
+      payment_date: input.paymentDate,
+      status: input.status,
+      transaction: input.transaction,
+      transaction_id: input.transaction.id,
+    };
+
+    return new Payable(payableInput);
   }
 }

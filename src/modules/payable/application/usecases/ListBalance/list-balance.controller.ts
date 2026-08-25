@@ -1,38 +1,32 @@
-import { clientError, fail, ok } from '@root/core/infra/HttpResponse';
+import { ok } from '@/core/infra/HttpResponse';
 
-import { Controller } from '@root/core/infra/Controller';
+import { Controller } from '@/core/infra/Controller';
+import { PayableMapper } from '@/modules/payable/domain/mappers/payable-mapper';
 import { ListBalance } from './list-balance';
-import { PayableMapper } from '@root/modules/payable/domain/mappers/payable-mapper';
 
 export class ListBalanceController implements Controller {
   constructor(
     private readonly listBalance: ListBalance,
-  ) { }
+  ) {}
 
   async handle() {
-    try {
-      const balanceOrError = await this.listBalance.execute();
+    const balance = await this.listBalance.execute();
 
-      if (balanceOrError.isLeft()) {
-        const error = balanceOrError.value;
+    const result = {
+      available: {
+        ...balance.available,
+        payables: balance.available.payables.map(payable =>
+          PayableMapper.transformForResponse(payable),
+        ),
+      },
+      waiting_funds: {
+        ...balance.waiting_funds,
+        payables: balance.waiting_funds.payables.map(payable =>
+          PayableMapper.transformForResponse(payable),
+        ),
+      },
+    };
 
-        return clientError(error);
-      }
-
-      const result = {
-        available: {
-          ...balanceOrError.value.available,
-          payables: balanceOrError.value.available.payables.map(payable => PayableMapper.transformForResponse(payable)),
-        },
-        waiting_funds: {
-          ...balanceOrError.value.waiting_funds,
-          payables: balanceOrError.value.waiting_funds.payables.map(payable => PayableMapper.transformForResponse(payable)),
-        },
-      };
-
-      return ok(result);
-    } catch (error) {
-      return fail(error);
-    }
+    return ok(result);
   }
 }
