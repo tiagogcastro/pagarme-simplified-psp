@@ -1,4 +1,4 @@
-import { clientError, created, fail } from '@/core/infra/HttpResponse';
+import { clientError, created } from '@/core/infra/HttpResponse';
 
 import { Controller } from '@/core/infra/Controller';
 import { CreatePayable } from '@/modules/payable/application/usecases/CreatePayable/create-payable';
@@ -24,29 +24,25 @@ export class CreateTransactionController implements Controller {
   ) {}
 
   async handle(request: CreateTransactionRequest) {
-    try {
-      const transactionOrError = await this.createTransaction.execute(request);
+    const transactionOrError = await this.createTransaction.execute(request);
 
-      if (transactionOrError.isLeft()) {
-        return clientError(transactionOrError.value);
-      }
-
-      const transaction = transactionOrError.value;
-
-      const payable = await this.createPayable.execute({
-        transaction,
-      });
-
-      const success = {
-        transaction: TransactionMapper.transformForResponse(transaction),
-        payable: PayableMapper.transformForResponse(payable, {
-          omitTransaction: true,
-        }),
-      };
-
-      return created(success);
-    } catch (error) {
-      return fail(error);
+    if (transactionOrError.isLeft()) {
+      return clientError(transactionOrError.value);
     }
+
+    const transaction = transactionOrError.value;
+
+    const payable = await this.createPayable.execute({
+      transaction,
+    });
+
+    const success = {
+      transaction: TransactionMapper.transformForResponse(transaction),
+      payable: PayableMapper.transformForResponse(payable, {
+        omitTransaction: true,
+      }),
+    };
+
+    return created(success);
   }
 }

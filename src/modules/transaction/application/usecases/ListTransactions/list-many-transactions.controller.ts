@@ -1,4 +1,4 @@
-import { fail, ok } from '@/core/infra/HttpResponse';
+import { ok } from '@/core/infra/HttpResponse';
 
 import { Controller } from '@/core/infra/Controller';
 import { TransactionMapper } from '@/modules/transaction/domain/mappers/transaction-mapper';
@@ -10,18 +10,14 @@ export class ListTransactionsController implements Controller {
   ) {}
 
   async handle() {
-    try {
-      const transactions = await this.listTransactions.execute();
+    const transactions = await this.listTransactions.execute();
 
-      const success = {
-        transaction: transactions.map(transaction =>
-          TransactionMapper.transformForResponse(transaction),
-        ),
-      };
+    const success = {
+      transaction: transactions.map(transaction =>
+        TransactionMapper.transformForResponse(transaction),
+      ),
+    };
 
-      return ok(success);
-    } catch (error) {
-      return fail(error);
-    }
+    return ok(success);
   }
 }

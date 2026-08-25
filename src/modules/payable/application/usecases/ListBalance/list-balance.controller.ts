@@ -1,4 +1,4 @@
-import { fail, ok } from '@/core/infra/HttpResponse';
+import { ok } from '@/core/infra/HttpResponse';
 
 import { Controller } from '@/core/infra/Controller';
 import { PayableMapper } from '@/modules/payable/domain/mappers/payable-mapper';
@@ -10,27 +10,23 @@ export class ListBalanceController implements Controller {
   ) {}
 
   async handle() {
-    try {
-      const balance = await this.listBalance.execute();
+    const balance = await this.listBalance.execute();
 
-      const result = {
-        available: {
-          ...balance.available,
-          payables: balance.available.payables.map(payable =>
-            PayableMapper.transformForResponse(payable),
-          ),
-        },
-        waiting_funds: {
-          ...balance.waiting_funds,
-          payables: balance.waiting_funds.payables.map(payable =>
-            PayableMapper.transformForResponse(payable),
-          ),
-        },
-      };
+    const result = {
+      available: {
+        ...balance.available,
+        payables: balance.available.payables.map(payable =>
+          PayableMapper.transformForResponse(payable),
+        ),
+      },
+      waiting_funds: {
+        ...balance.waiting_funds,
+        payables: balance.waiting_funds.payables.map(payable =>
+          PayableMapper.transformForResponse(payable),
+        ),
+      },
+    };
 
-      return ok(result);
-    } catch (error) {
-      return fail(error);
-    }
+    return ok(result);
   }
 }

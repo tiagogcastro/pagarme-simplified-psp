@@ -6,14 +6,14 @@ export type HttpResponse = {
 export function ok<T>(data: T): HttpResponse {
   return {
     statusCode: 200,
-    body: data,
+    body: { data },
   };
 }
 
 export function created<T>(data: T): HttpResponse {
   return {
     statusCode: 201,
-    body: data,
+    body: { data },
   };
 }
 
@@ -24,20 +24,6 @@ export function clientError(error: Error): HttpResponse {
       error: {
         message: error.message,
         name: error.name,
-      },
-    },
-  };
-}
-
-export function fail(error: unknown): HttpResponse {
-  console.error(error);
-
-  return {
-    statusCode: 500,
-    body: {
-      error: {
-        message: 'Internal server error',
-        name: 'InternalServerError',
       },
     },
   };
