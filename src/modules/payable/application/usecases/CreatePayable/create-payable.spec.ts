@@ -12,72 +12,77 @@ let createPayable: CreatePayable;
 let payableRepository: IPayableRepository;
 let dateProvider: DateProvider;
 
+const buildTransaction = (
+  payment_method: 'credit_card' | 'debit_card',
+  value: number,
+): Transaction => {
+  return Transaction.create({
+    card_expiration_date: new Date(),
+    card_holder_name: 'John Doe',
+    card_number: CardNumber.create('1234567890123456').value as CardNumber,
+    card_verification_code: '123',
+    payment_method,
+    description: 'Fake description',
+    value,
+  }).value!;
+};
+
 describe('Create Payable usecase', () => {
   payableRepository = new InMemoryPayablesRepository();
   dateProvider = new DateFnsProvider();
 
   createPayable = new CreatePayable(payableRepository, dateProvider);
 
-  it('it should be able create with waiting_funds status if payment method is credit_card', async () => {
-    const transaction = Transaction.create({
-      card_expiration_date: new Date(),
-      card_holder_name: 'John Doe',
-      card_number: CardNumber.create(123456789).value as CardNumber,
-      card_verification_code: 123,
-      payment_method: 'credit_card',
-      description: 'Fake description',
-      value: 10
-    }).value!;
+  it('it should create one paid payable for a debit card', async () => {
+    const transaction = buildTransaction('debit_card', 100);
 
-    const response = await createPayable.execute({
-      transaction
+    const payables = await createPayable.execute({
+      transaction,
     });
 
-    expect(response.status).toStrictEqual('waiting_funds');
+    expect(payables).toHaveLength(1);
+
+    const payable = payables[0]!;
+
+    expect(payable.status).toStrictEqual('paid');
+
+    const expectedDate = dateProvider.add(new Date(), { days: 1 });
+
+    expect(dateProvider.differenceInDays(payable.payment_date, expectedDate)).toStrictEqual(0);
+
+    expect(payable.value).toBeCloseTo(97, 10);
   });
 
-  it('30 days must be added to payment_date if payment method is credit_card', async () => {
-    const transaction = Transaction.create({
-      card_expiration_date: new Date(),
-      card_holder_name: 'John Doe',
-      card_number: CardNumber.create(123456789).value as CardNumber,
-      card_verification_code: 123,
-      payment_method: 'credit_card',
-      description: 'Fake description',
-      value: 10
+  it('it should create four waiting_funds payables spaced by 30 days for a credit card', async () => {
+    const transaction = buildTransaction('credit_card', 100);
 
-    }).value!;
-
-    const response = await createPayable.execute({
-      transaction
+    const payables = await createPayable.execute({
+      transaction,
     });
 
-    const payment_date = response.payment_date;
+    expect(payables).toHaveLength(4);
 
-    const dateNowThirtyDayAfter = dateProvider.add(new Date(), {
-      days: 30,
+    payables.forEach((payable, index) => {
+      expect(payable.status).toStrictEqual('waiting_funds');
+      expect(payable.transaction_id).toStrictEqual(transaction.id);
+
+      const expectedDate = dateProvider.add(new Date(), { days: 30 * (index + 1) });
+
+      expect(dateProvider.differenceInDays(payable.payment_date, expectedDate)).toStrictEqual(0);
     });
-
-    const differenceDays = dateProvider.differenceInDays(payment_date, dateNowThirtyDayAfter);
-
-    expect(differenceDays).toStrictEqual(0);
   });
 
-  it('it should be able create with paid status if payment method is debit_card', async () => {
-    const transaction = Transaction.create({
-      card_expiration_date: new Date(),
-      card_holder_name: 'John Doe',
-      card_number: CardNumber.create(123456789).value as CardNumber,
-      card_verification_code: 123,
-      payment_method: 'debit_card',
-      description: 'Fake description',
-      value: 10
-    }).value!;
+  it('it should discount the fee on the payable values splitting credit into four parts', async () => {
+    const transaction = buildTransaction('credit_card', 10);
 
-    const response = await createPayable.execute({
-      transaction
+    const payables = await createPayable.execute({
+      transaction,
     });
 
-    expect(response.status).toStrictEqual('paid');
+    const total = payables.reduce((acc, payable) => acc + payable.value, 0);
+
+    expect(total).toBeCloseTo(9.5, 10);
+
+    expect(payables.map(payable => payable.value)).toStrictEqual([2.37, 2.37, 2.37, 2.39]);
   });
 });

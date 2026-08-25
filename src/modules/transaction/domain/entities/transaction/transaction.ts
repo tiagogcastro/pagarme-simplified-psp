@@ -12,7 +12,7 @@ export interface ITransaction {
   card_number: CardNumber;
   card_holder_name: string;
   card_expiration_date: Date;
-  card_verification_code: number;
+  card_verification_code: string;
 }
 
 export class Transaction extends Entity<ITransaction> {

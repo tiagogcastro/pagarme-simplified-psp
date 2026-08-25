@@ -10,10 +10,10 @@ import { CreateTransaction } from './create-transaction';
 type CreateTransactionRequest = {
   description?: string;
   payment_method: PaymentMethod;
-  card_number: number;
+  card_number: string;
   card_holder_name: string;
   card_expiration_date: Date;
-  card_verification_code: number;
+  card_verification_code: string;
   value: number;
 }
 
@@ -32,15 +32,17 @@ export class CreateTransactionController implements Controller {
 
     const transaction = transactionOrError.value;
 
-    const payable = await this.createPayable.execute({
+    const payables = await this.createPayable.execute({
       transaction,
     });
 
     const success = {
       transaction: TransactionMapper.transformForResponse(transaction),
-      payable: PayableMapper.transformForResponse(payable, {
-        omitTransaction: true,
-      }),
+      payables: payables.map(payable =>
+        PayableMapper.transformForResponse(payable, {
+          omitTransaction: true,
+        })
+      ),
     };
 
     return created(success);

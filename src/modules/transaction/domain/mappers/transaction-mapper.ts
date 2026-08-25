@@ -2,10 +2,10 @@ import { PaymentMethod, Transaction } from '@/modules/transaction/domain/entitie
 
 export type TransactionResponse = {
   id: string;
-  card_number: number;
+  card_number: string;
   card_expiration_date: Date;
   card_holder_name: string;
-  card_verification_code: number;
+  card_verification_code: string;
   payment_method: PaymentMethod;
   value: number;
   description?: string;

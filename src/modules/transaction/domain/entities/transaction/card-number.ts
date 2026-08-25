@@ -2,38 +2,41 @@ import { Either, left, right } from '@/core/logic/Either';
 
 import { InvalidCardNumberError } from './errors/InvalidCardNumberError';
 
+const MIN_CARD_NUMBER_DIGITS = 12;
+const MAX_CARD_NUMBER_DIGITS = 19;
+
 export class CardNumber {
-  private readonly card_number: number;
+  private readonly lastFourDigits: string;
 
-  private constructor(card_number: number) {
-    this.card_number = card_number
+  private constructor(lastFourDigits: string) {
+    this.lastFourDigits = lastFourDigits;
   }
 
-  get value() {
-    return this.card_number;
+  get value(): string {
+    return this.lastFourDigits;
   }
 
-  static checkIfCardNumberIsInvalid(card_number: number) {
-    if (isNaN(card_number)) {
-      return true;
-    }
-
-    return false;
+  static sanitize(rawCardNumber: string): string {
+    return rawCardNumber.replace(/[\s-]/g, '');
   }
 
-  static getTheFourLastCardNumber(card_number: number) {
-    const result = String(card_number).slice(-4);
+  static isValidDigitString(cardNumber: string): boolean {
+    const digitCount = cardNumber.length;
 
-    return Number(result);
+    return (
+      digitCount >= MIN_CARD_NUMBER_DIGITS &&
+      digitCount <= MAX_CARD_NUMBER_DIGITS &&
+      /^\d+$/.test(cardNumber)
+    );
   }
 
-  static create(card_number: number): Either<InvalidCardNumberError, CardNumber> {
-    if (this.checkIfCardNumberIsInvalid(card_number)) {
+  static create(card_number: string): Either<InvalidCardNumberError, CardNumber> {
+    const sanitized = CardNumber.sanitize(card_number);
+
+    if (!CardNumber.isValidDigitString(sanitized)) {
       return left(new InvalidCardNumberError(card_number));
     }
 
-    card_number = this.getTheFourLastCardNumber(card_number);
-
-    return right(new CardNumber(card_number));
+    return right(new CardNumber(sanitized.slice(-4)));
   }
 }

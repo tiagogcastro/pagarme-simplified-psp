@@ -14,7 +14,7 @@ export class InMemoryTransactionRepository implements ITransactionRepository {
     return [...this.transactions];
   }
 
-  async exists(card_number: number): Promise<Transaction | null> {
+  async exists(card_number: string): Promise<Transaction | null> {
     const found = this.transactions.find(
       transaction => transaction.card_number.value === card_number,
     );

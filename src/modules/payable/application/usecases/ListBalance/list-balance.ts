@@ -22,11 +22,11 @@ export class ListBalance {
     const waiting_funds = await this.payableRepository.findManyByStatus('waiting_funds');
 
     const availableBalance = available.reduce((acc, current) => {
-      return acc + current.transaction.value;
+      return acc + current.value;
     }, 0);
 
     const waitingFundsBalance = waiting_funds.reduce((acc, current) => {
-      return acc + current.transaction.value;
+      return acc + current.value;
     }, 0);
 
     return {

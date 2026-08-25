@@ -3,6 +3,7 @@ import { TransactionMapper } from '@/modules/transaction/domain/mappers/transact
 
 export type PayableResponse = {
   id: string;
+  value: number;
   payment_date: Date;
   status: PayableStatus;
   transaction_id: string;
@@ -19,6 +20,7 @@ export class PayableMapper {
   ): PayableResponse | PayableWithTransactionResponse {
     const base: PayableResponse = {
       id: payable.id,
+      value: payable.value,
       payment_date: payable.payment_date,
       status: payable.status,
       transaction_id: payable.transaction_id,

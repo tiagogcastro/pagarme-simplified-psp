@@ -18,8 +18,8 @@ describe('List Many Transaction use-case', () => {
     const transaction = Transaction.create({
       card_expiration_date: new Date(),
       card_holder_name: 'John Doe',
-      card_number: CardNumber.create(123456789).value as CardNumber,
-      card_verification_code: 123,
+      card_number: CardNumber.create('1234567890123456').value as CardNumber,
+      card_verification_code: '123',
       payment_method: 'credit_card',
       description: 'Fake description',
       value: 10,
