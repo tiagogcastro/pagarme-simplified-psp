@@ -1,11 +1,11 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 
-import { CardNumber } from '@root/modules/transaction/domain/entities/transaction/card-number';
-import { IPayableRepository } from '@root/modules/payable/domain/repositories/payable-repository';
-import { InMemoryPayablesRepository } from '@root/modules/payable/infra/repositories/in-memory/payables-repository';
+import { CardNumber } from '@/modules/transaction/domain/entities/transaction/card-number';
+import { IPayableRepository } from '@/modules/payable/domain/repositories/payable-repository';
+import { InMemoryPayablesRepository } from '@/modules/payable/infra/repositories/in-memory/payables-repository';
 import { ListBalance } from './list-balance';
-import { Payable } from '@root/modules/payable/domain/entities/payable';
-import { Transaction } from '@root/modules/transaction/domain/entities/transaction/transaction';
+import { Payable } from '@/modules/payable/domain/entities/payable';
+import { Transaction } from '@/modules/transaction/domain/entities/transaction/transaction';
 
 let listBalance: ListBalance;
 let payableRepository: IPayableRepository;
@@ -24,7 +24,7 @@ describe('List Balance usecase', () => {
       payment_method: 'credit_card',
       description: 'Fake description',
       value: 10
-    }).value;
+    }).value!;
 
     const transactionWithDebitCard = Transaction.create({
       card_expiration_date: new Date(),
@@ -34,7 +34,7 @@ describe('List Balance usecase', () => {
       payment_method: 'debit_card',
       description: 'Fake description',
       value: 10
-    }).value;
+    }).value!;
 
     const payableWithWaitingFunds = new Payable({
       payment_date: new Date(),
@@ -55,8 +55,7 @@ describe('List Balance usecase', () => {
 
     const response = await listBalance.execute();
 
-    expect(response.isRight()).toBe(true);
-    expect(response.value).toStrictEqual({
+    expect(response).toStrictEqual({
       waiting_funds: {
         payables: [payableWithWaitingFunds],
         balance: transactionWithCreditCard.value,

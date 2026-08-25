@@ -1,7 +1,7 @@
-import { Either, right } from '@root/core/logic/Either';
+import { Either, right } from '@/core/logic/Either';
 
-import { Entity } from '@root/core/domain/Entity';
-import { Transaction } from '@root/modules/transaction/domain/entities/transaction/transaction';
+import { Entity } from '@/core/domain/Entity';
+import { Transaction } from '@/modules/transaction/domain/entities/transaction/transaction';
 
 export type PayableStatus = 'paid' | 'waiting_funds';
 

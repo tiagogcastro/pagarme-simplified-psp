@@ -1,51 +1,43 @@
-import { Either, right } from '@root/core/logic/Either';
-import { IPayable, Payable } from '@root/modules/payable/domain/entities/payable';
-
-import { DateProvider } from '@root/shared/providers/date/models/date-provider';
-import { IPayableRepository } from '@root/modules/payable/domain/repositories/payable-repository';
-import { Transaction } from '@root/modules/transaction/domain/entities/transaction/transaction';
+import { IPayable, Payable, PayableStatus } from '@/modules/payable/domain/entities/payable';
+import { IPayableRepository } from '@/modules/payable/domain/repositories/payable-repository';
+import { Transaction } from '@/modules/transaction/domain/entities/transaction/transaction';
+import { DateProvider } from '@/shared/providers/date/models/date-provider';
 
 export type CreatePayableInput = {
   transaction: Transaction;
 }
 
-export type CreatePayableResponse = Either<
-  null,
-  Payable
->;
-
 export class CreatePayable {
   constructor(
     private payableRepository: IPayableRepository,
     private dateProvider: DateProvider,
-  ) { }
+  ) {}
 
-  async execute({ transaction }: CreatePayableInput): Promise<CreatePayableResponse> {
-    let payableInput: IPayable = {
-      payment_date: new Date(),
-      status: 'waiting_funds',
+  async execute({ transaction }: CreatePayableInput): Promise<Payable> {
+    let paymentDate = new Date();
+    let status: PayableStatus = 'waiting_funds';
+
+    if (transaction.payment_method === 'debit_card') {
+      status = 'paid';
+    }
+
+    if (transaction.payment_method === 'credit_card') {
+      paymentDate = this.dateProvider.add(paymentDate, {
+        days: 30,
+      });
+    }
+
+    const payableInput: IPayable = {
+      payment_date: paymentDate,
+      status,
       transaction,
       transaction_id: transaction.id,
     };
 
-    if (transaction.payment_method === 'debit_card') {
-      payableInput.status = 'paid';
-    }
-
-    if (transaction.payment_method === 'credit_card') {
-      const paymentDateThirtyDayAfter = this.dateProvider.add(payableInput.payment_date, {
-        days: 30
-      });
-
-      payableInput.payment_date = paymentDateThirtyDayAfter;
-    }
-
-    const payableOrError = Payable.create(payableInput);
-
-    const payable = payableOrError.value;
+    const payable = new Payable(payableInput);
 
     await this.payableRepository.create(payable);
 
-    return right(payable);
+    return payable;
   }
 }

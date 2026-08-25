@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 
 import { CardNumber } from './card-number';
 import { Transaction } from './transaction';
@@ -27,6 +27,6 @@ describe('Transaction entity domain', () => {
       card_expiration_date,
       value: 10,
     });
-    expect(transactionOrError.value.card_number).toBeInstanceOf(CardNumber);
+    expect(transactionOrError.value!.card_number).toBeInstanceOf(CardNumber);
   });
 })

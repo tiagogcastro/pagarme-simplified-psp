@@ -1,4 +1,4 @@
-import { DomainError } from '@root/core/domain/errors/DomainError';
+import { DomainError } from '@/core/domain/errors/DomainError';
 
 export class InvalidCardNumberError extends Error implements DomainError {
   constructor(card_number: number) {

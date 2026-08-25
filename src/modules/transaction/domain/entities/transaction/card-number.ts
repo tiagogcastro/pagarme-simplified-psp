@@ -1,4 +1,4 @@
-import { Either, left, right } from '@root/core/logic/Either';
+import { Either, left, right } from '@/core/logic/Either';
 
 import { InvalidCardNumberError } from './errors/InvalidCardNumberError';
 

@@ -1,7 +1,7 @@
-import { Either, right } from '@root/core/logic/Either';
+import { Either, right } from '@/core/logic/Either';
 
 import { CardNumber } from './card-number';
-import { Entity } from '@root/core/domain/Entity';
+import { Entity } from '@/core/domain/Entity';
 
 export type PaymentMethod = 'debit_card' | 'credit_card';
 

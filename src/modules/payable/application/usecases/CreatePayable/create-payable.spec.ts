@@ -1,13 +1,12 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 
-import { CardNumber } from '@root/modules/transaction/domain/entities/transaction/card-number';
+import { CardNumber } from '@/modules/transaction/domain/entities/transaction/card-number';
 import { CreatePayable } from './create-payable';
-import { DateFnsProvider } from '@root/shared/providers/date/implementations/date-fns.provider';
-import { DateProvider } from '@root/shared/providers/date/models/date-provider';
-import { IPayableRepository } from '@root/modules/payable/domain/repositories/payable-repository';
-import { InMemoryPayablesRepository } from '@root/modules/payable/infra/repositories/in-memory/payables-repository';
-import { Payable } from '@root/modules/payable/domain/entities/payable';
-import { Transaction } from '@root/modules/transaction/domain/entities/transaction/transaction';
+import { DateFnsProvider } from '@/shared/providers/date/implementations/date-fns.provider';
+import { DateProvider } from '@/shared/providers/date/models/date-provider';
+import { IPayableRepository } from '@/modules/payable/domain/repositories/payable-repository';
+import { InMemoryPayablesRepository } from '@/modules/payable/infra/repositories/in-memory/payables-repository';
+import { Transaction } from '@/modules/transaction/domain/entities/transaction/transaction';
 
 let createPayable: CreatePayable;
 let payableRepository: IPayableRepository;
@@ -28,13 +27,13 @@ describe('Create Payable usecase', () => {
       payment_method: 'credit_card',
       description: 'Fake description',
       value: 10
-    }).value;
+    }).value!;
 
     const response = await createPayable.execute({
       transaction
     });
 
-    expect((response.value as Payable).props.status).toStrictEqual('waiting_funds');
+    expect(response.status).toStrictEqual('waiting_funds');
   });
 
   it('30 days must be added to payment_date if payment method is credit_card', async () => {
@@ -47,13 +46,13 @@ describe('Create Payable usecase', () => {
       description: 'Fake description',
       value: 10
 
-    }).value;
+    }).value!;
 
     const response = await createPayable.execute({
       transaction
     });
 
-    const payment_date = (response.value as Payable).props.payment_date;
+    const payment_date = response.payment_date;
 
     const dateNowThirtyDayAfter = dateProvider.add(new Date(), {
       days: 30,
@@ -73,12 +72,12 @@ describe('Create Payable usecase', () => {
       payment_method: 'debit_card',
       description: 'Fake description',
       value: 10
-    }).value;
+    }).value!;
 
     const response = await createPayable.execute({
       transaction
     });
 
-    expect((response.value as Payable).props.status).toStrictEqual('paid');
+    expect(response.status).toStrictEqual('paid');
   });
 });

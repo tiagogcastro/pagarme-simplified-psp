@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 
 import { CardNumber } from './card-number';
 import { InvalidCardNumberError } from './errors/InvalidCardNumberError';

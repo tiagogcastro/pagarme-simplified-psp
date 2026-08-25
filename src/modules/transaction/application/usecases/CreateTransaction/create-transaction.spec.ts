@@ -1,10 +1,10 @@
-import { beforeAll, describe, expect, it } from '@jest/globals';
+import { beforeAll, describe, expect, it } from 'vitest';
 
 import { CreateTransaction } from './create-transaction';
-import { ITransactionRepository } from '@root/modules/transaction/domain/repositories/transaction-repository';
-import { InMemoryTransactionRepository } from '@root/modules/transaction/infra/repositories/in-memory/transactions-repository';
-import { InvalidCardNumberError } from '@root/modules/transaction/domain/entities/transaction/errors/InvalidCardNumberError';
-import { PaymentMethod } from '@root/modules/transaction/domain/entities/transaction/transaction';
+import { ITransactionRepository } from '@/modules/transaction/domain/repositories/transaction-repository';
+import { InMemoryTransactionRepository } from '@/modules/transaction/infra/repositories/in-memory/transactions-repository';
+import { InvalidCardNumberError } from '@/modules/transaction/domain/entities/transaction/errors/InvalidCardNumberError';
+import { PaymentMethod } from '@/modules/transaction/domain/entities/transaction/transaction';
 
 let createTransaction: CreateTransaction;
 let transactionRepository: ITransactionRepository;
@@ -46,7 +46,7 @@ describe('Create Transaction use-case', () => {
   });
 
   it('must be able to create with processing fee using credit card', async () => {
-    let value = 10;
+    const value = 10;
     const payment_method = 'credit_card';;
 
     const feeRateOptions = {
@@ -75,7 +75,7 @@ describe('Create Transaction use-case', () => {
   });
 
   it('must be able to create with processing fee using debit card', async () => {
-    let value = 10;
+    const value = 10;
     const payment_method = 'debit_card';;
 
     const feeRateOptions = {

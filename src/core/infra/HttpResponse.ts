@@ -1,19 +1,19 @@
 export type HttpResponse = {
-  statusCode: number
-  body: any;
+  statusCode: number;
+  body: unknown;
 }
 
-export function ok<T>(dto?: T): HttpResponse {
+export function ok<T>(data: T): HttpResponse {
   return {
     statusCode: 200,
-    body: dto,
+    body: data,
   };
 }
 
-export function created<T>(dto?: T): HttpResponse {
+export function created<T>(data: T): HttpResponse {
   return {
     statusCode: 201,
-    body: dto,
+    body: data,
   };
 }
 
@@ -29,75 +29,15 @@ export function clientError(error: Error): HttpResponse {
   };
 }
 
-export function unauthorized(error: Error): HttpResponse {
-  return {
-    statusCode: 401,
-    body: {
-      error: {
-        message: error.message,
-        name: error.name,
-      },
-    },
-  };
-}
-
-export function forbidden(error: Error): HttpResponse {
-  return {
-    statusCode: 403,
-    body: {
-      error: {
-        message: error.message,
-        name: error.name,
-      },
-    },
-  };
-}
-
-export function notFound(error: Error): HttpResponse {
-  return {
-    statusCode: 404,
-    body: {
-      error: {
-        message: error.message,
-        name: error.name,
-      },
-    },
-  };
-}
-
-export function conflict(error: Error): HttpResponse {
-  return {
-    statusCode: 409,
-    body: {
-      error: {
-        message: error.message,
-        name: error.name,
-      },
-    },
-  };
-}
-
-export function tooMany(error: Error): HttpResponse {
-  return {
-    statusCode: 429,
-    body: {
-      error: {
-        message: error.message,
-        name: error.name,
-      },
-    },
-  };
-}
-
-export function fail(error: Error) {
-  console.log(error)
+export function fail(error: unknown): HttpResponse {
+  console.error(error);
 
   return {
     statusCode: 500,
     body: {
       error: {
-        message: error.message,
-        name: error.name,
+        message: 'Internal server error',
+        name: 'InternalServerError',
       },
     },
   };

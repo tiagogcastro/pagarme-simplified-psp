@@ -1,8 +1,8 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 
-import { CardNumber } from '@root/modules/transaction/domain/entities/transaction/card-number';
+import { CardNumber } from '@/modules/transaction/domain/entities/transaction/card-number';
 import { Payable } from './payable';
-import { Transaction } from '@root/modules/transaction/domain/entities/transaction/transaction';
+import { Transaction } from '@/modules/transaction/domain/entities/transaction/transaction';
 
 describe('Payable Entity domain', () => {
   it('it should be able create with paid status', () => {
@@ -14,7 +14,7 @@ describe('Payable Entity domain', () => {
       payment_method: 'debit_card',
       description: 'Fake description',
       value: 10
-    }).value;
+    }).value!;
 
     const payment_date = new Date();
     const status = 'paid';
@@ -43,7 +43,7 @@ describe('Payable Entity domain', () => {
       payment_method: 'credit_card',
       description: 'Fake description',
       value: 10
-    }).value;
+    }).value!;
 
     const payment_date = new Date();
     const status = 'waiting_funds';
